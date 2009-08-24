@@ -47,8 +47,8 @@ void fireMatrix_Draw(int sx, int sy)
             GRRLIB_Plot(sx+x,sy-2*y-1,color);
             GRRLIB_Plot(sx+x,sy-2*y,color);
 
-            //Instead of plot aside the previous pixels, we plot in the other half
-            //of screen, so we dont see huge 4x4 pixel blocks
+            //Instead of plot aside the previous pixels, we plot in the
+	    //other half of screen, so we dont see huge 4x4 pixel blocks
             GRRLIB_Plot(sx+x+fireMatrix_W,sy-2*y-1,color);
             GRRLIB_Plot(sx+x+fireMatrix_W,sy-2*y,color);
         }//for
