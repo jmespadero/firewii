@@ -23,7 +23,11 @@ u32 fireColors[256];
 //using a range of 200 values
 #define fireMatrix_W 320
 #define fireMatrix_H 235
-u32 fireMatrix[fireMatrix_H+1][fireMatrix_W];
+
+//Declare the matrix and add two extra rows for padding
+u32 fireMatrix2[(fireMatrix_H+2)*fireMatrix_W];
+//fireMatrix is a pointer to beginning of usefull data
+u32 *fireMatrix = fireMatrix2 + 2*fireMatrix_W;
 
 //Temperature decreasing factor on each simulation step
 int fireCombustion = 3;
@@ -37,11 +41,12 @@ void fireMatrix_Draw(int sx, int sy)
 {
     int x, y;
     sy += 2*fireMatrix_H;
-    for (y=1; y< fireMatrix_H; y++)
+    u32 *dot = fireMatrix;
+    for (y=0; y< fireMatrix_H; y++)
     {
         for (x=0; x< fireMatrix_W; x++)
         {
-            u32 color = fireColors[fireMatrix[y][x]];
+            u32 color = fireColors[*dot];
 
             //Plot a pixel and the pixel above of it
             GRRLIB_Plot(sx+x,sy-2*y-1,color);
@@ -49,8 +54,12 @@ void fireMatrix_Draw(int sx, int sy)
 
             //Instead of plot aside the previous pixels, we plot in the
 	    //other half of screen, so we dont see huge 4x4 pixel blocks
-            GRRLIB_Plot(sx+x+fireMatrix_W,sy-2*y-1,color);
-            GRRLIB_Plot(sx+x+fireMatrix_W,sy-2*y,color);
+            GRRLIB_Plot(sx+fireMatrix_W+x,sy-2*y-1,color);
+            GRRLIB_Plot(sx+fireMatrix_W+x,sy-2*y,color);
+
+            //next dot in the matrix
+            dot++;
+
         }//for
     }//for
 
@@ -60,53 +69,62 @@ void fireMatrix_Draw(int sx, int sy)
 //Makes one step of fire animation.
 void fireMatrix_Anim()
 {
-	int x, y;
-	register int acc;
-	
+    int x, y;
+    register int acc;
+
     //Botton line is build using random noise. If extraFire is set, adds extra hot to each dot.
-	for (x=0; x< fireMatrix_W; x++)
-	{
-		if (extraFire > 0)
-            fireMatrix[0][x] += rand() & 255;
-		 else
-            fireMatrix[0][x] = rand() & 255;
+    for (x=0; x< fireMatrix_W; x++)
+    {
+        if (extraFire > 0)
+            fireMatrix[-x] += rand() & 255;
+        else
+            fireMatrix[-x] = rand() & 255;
     }
-		
+
     //Rest of matrix is build from interpolation. Each dot temperature is averaged
     //with its three inferior neighbours and a little noise is added.
     //If extraFire is set, adds extra hot to each dot.
-	for (y=1; y<fireMatrix_H;y++)
-	{
-		for (x=0; x< fireMatrix_W; x++)
-		{
+    u32 *dot = fireMatrix;
+    u32 *dot_10 = dot - fireMatrix_W-1;
+    u32 *dot_11 = dot - fireMatrix_W;
+    u32 *dot_12 = dot - fireMatrix_W+1;
+    for (y=0; y<fireMatrix_H;y++)
+    {
+        for (x=0; x< fireMatrix_W; x++)
+        {
             //Adds the value of this dot, plus 3 neighbours, plus extra noise.
-			acc =   fireMatrix[y][x] + 
-					fireMatrix[y-1][x+1] + 
-					fireMatrix[y-1][x] + 
-                    fireMatrix[y-1][x-1]+
+            acc = *dot + *dot_10 + *dot_11 + *dot_12 +
                     (rand() & ((extraFire > 0)?31:15));
-					
+
             //Divide the result by 4, to compute a valid average
-			acc >>= 2;
+            acc >>= 2;
 
             //Decrease the value due to combustion
             if (acc > fireCombustion)
                 acc -= fireCombustion;
             else if (acc > 0)
-				acc--;
-				
+                acc--;
+
             //Check for overflows due to noise.
-			if (acc > 199)
-				acc = 199;				
-				
-			fireMatrix[y][x] = acc;
+            if (acc > 199)
+                acc = 199;
+
+            //Save this temperature
+            *dot = acc;
+
+            //points to next dot
+            dot++;
+            dot_10++;
+            dot_11++;
+            dot_12++;
+
         }//for
-		
+
     }//for
-	
+
     //Decrease the value of extraFire.
-	if (extraFire > 0)
-		extraFire--;
+    if (extraFire > 0)
+        extraFire--;
 
 }//void fireMatrix_Anim()
 
@@ -179,8 +197,8 @@ int main() {
     GRRLIB_FillScreen(0x000000FF);
 
     //Animation loop. It comes with two different flavours
-    //while(timeout++ < 4000) { //Exit after a given number of iteration.
-    while(1) {                  //Run until user press home button in the pad.
+    while(timeout++ < 400) { //Exit after a given number of iteration.
+    //while(1) {                  //Run until user press home button in the pad.
 
         //Read state of pad 0
         WPAD_ScanPads();
