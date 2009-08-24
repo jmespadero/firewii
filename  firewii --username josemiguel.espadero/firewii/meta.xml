@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+	<app version="1.0">
+		<name>FireWii</name>
+		<coder>Jespa</coder>
+		<version>1.0</version>
+		<release_date>Aug 20, 2009</release_date>
+		<short_description>Fire animation demo for Wii</short_description>
+		<long_description>
+It is always nice to sit by the warm fire in the living room, so I wrote this to my loved wife.
+
+  Programmed by Jespa in 2009, based on Asphyxia VGA tutorial #19.
+		</long_description>
+	</app>
