@@ -170,7 +170,7 @@ void fireColors_Init()
 //Draw the fireColors values. This is only for testing and debug.
 void fireColors_Draw(int sx, int sy, int width)
 {
-    int c;    
+    int c;
     for (c=0; c<255; c++)
         GRRLIB_Line(sx,sy+c,sx+width, sy+c, fireColors[c]);
 }//void fireColors_Draw(int sx, int sy)
@@ -249,7 +249,7 @@ int main() {
 
     // Be a good boy, clear the memory allocated by GRRLIB
     GRRLIB_Exit();
-    exit(0);  
+    exit(0);
 
 }// int main()
 
